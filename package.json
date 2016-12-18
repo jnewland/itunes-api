@@ -21,6 +21,7 @@
     "local-itunes": "^0.3.0",
     "osa": "2.2.0",
     "osascript": "1.2.0",
-    "parameterize": "^0.0.7"
+    "parameterize": "^0.0.7",
+    "clj-fuzzy": "^0.3.1"
   }
 }

@@ -9,6 +9,7 @@ var osa = require('osa')
 var osascript = require('osascript')
 var airplay = require('./lib/airplay')
 var parameterize = require('parameterize');
+var fuzzy = require('./lib/fuzzy')
 
 var app = express()
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -280,8 +281,15 @@ app.put('/playlists/:id/play', function (req, res) {
     if (error){
       res.sendStatus(500)
     }else{
+      var names = []
+      var idByName = {}
+
       for (var i = 0; i < data.length; i++) {
         playlist = data[i]
+        names.push(playlist['name'])
+        idByName[playlist['name']] = playlist['id']
+
+        // play by id if there's a match
         if (req.params.id == parameterize(playlist['name'])) {
           osa(playPlaylist, playlist['id'], function (error, data) {
             sendResponse(error, res)
@@ -289,6 +297,16 @@ app.put('/playlists/:id/play', function (req, res) {
           return
         }
       }
+
+      // try to find a match we're reasonably confident about
+      var matchingName = fuzzy.confidentMatch(names, req.params.id)
+      if (matchingName) {
+        osa(playPlaylist, idByName[matchingName], function (error, data) {
+          sendResponse(error, res)
+        })
+        return
+      }
+
       res.sendStatus(404)
     }
   })
